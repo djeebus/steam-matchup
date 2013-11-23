@@ -1,0 +1,124 @@
+<!doctype html>
+<html>
+    <head>
+        <title>SteamMatchUp</title>
+        <link rel="stylesheet/less" type="text/css" href="styles/filter.less" />
+        <script type="text/javascript" src="scripts/less-1.3.3.min.js"></script>
+        <script type="text/javascript" src="scripts/modernizr-2.5.3.js"></script>
+    </head>
+    <body>
+        <div id="content-container">
+            <div id="ajax-in-progress">
+                <div id="prompt">Please wait ... </div>
+                <div id="status"></div>
+            </div>
+
+            <header>
+                <h1>Steam Filter</h1>
+            </header>
+        
+            <section id="configuration" class="row">
+                <form id="steam-login" action="/auth/" method="post">
+                    <img src="http://cdn.steamcommunity.com/public/images/signinthroughsteam/sits_large_border.png" 
+                         onclick="$(this).parents('form').submit()"
+                         height="51" width="118"
+                         alt="Sign In Through Steam" />
+                </form>
+            </section>
+
+            <section id="filters" class="row">
+                <div id="gamers" data-bind="visible: gamers().length &gt; 0">
+                    <h3>Gamers</h3>
+                    <ul data-bind="template: { name: 'gamer', foreach: gamers }"></ul>
+                </div>
+
+                <script type="text/html" id="gamer">
+                    <li class='gamer'>
+                        <span data-bind="text: name"></span>
+                        <a href='javascript:void(0)' data-bind="click: remove">remove</a>
+                        <a href='javascript:void(0)' data-bind="click: toggleFriends">
+                            {{if displayFriends}}
+                                hide friends
+                            {{else}}
+                                show friends
+                            {{/if}}
+                        </a>
+                        <ul class="friends" data-bind="template: { name: 'friend', foreach: friends }, visible: displayFriends"></ul>
+                    </li>
+                </script>
+
+                <script type="text/html" id="friend">
+                    <li class='friend'>
+                        <span data-bind="text: name"></span>
+                        <a href="javascript:void(0)" data-bind="click: select, visible: canSelect">add</a>
+                        <span data-bind="visible: isAdding">Adding, please wait ... </span>
+                    </li>
+                </script>
+
+                <div id="filter-dialog">
+                    <div id="features" data-bind="visible: features().length > 0">
+                        <h3>Features</h3>
+                        <ul data-bind="template: { name: 'feature', foreach: features }"></ul>
+                    </div>
+
+                    <div id="genres" data-bind="visible: genres().length > 0">
+                        <h3>Genres</h3>
+                        <ul data-bind="template: { name: 'genre', foreach: genres }"></ul>
+                    </div>
+
+                    <div id="common-players" data-bind="visible: commonUsers().length > 1">
+                        <h3>Common Gamers</h3>
+                        <ul data-bind="template: { name: 'users', foreach: commonUsers }"></ul>
+                    </div>
+                </div>
+
+                <script type="text/html" id="users">
+                    <li class='user'>
+                        <input type='radio' name='users' data-bind='attr: { value: value, id: id }, checked: $parent.numberOfCommonGamers'  />
+                        <label data-bind='attr: { for: id }, text: name'></label>
+                    </li>
+                </script>
+
+                <script type="text/html" id="feature">
+                    <li class='feature'>
+                        <input type="checkbox" data-bind="attr: { id: name }, checked: selected"></input>
+                        <label data-bind="attr: { for: name }, text: name"></span>
+                    </li>
+                </script>
+
+                <script type="text/html" id="genre">
+                    <li class='genre'>
+                        <input type="checkbox" data-bind="attr: { id: name }, checked: selected"></input>
+                        <label data-bind="attr: { for: name }, text: name"></span>
+                    </li>
+                </script>
+
+            </section>
+
+            <div id="tableContainer" data-bind="visible: games().length > 0">
+                <h3>Games (<a href="javascript:void(0)" data-bind="click: showFilterDialog">filter</a>)</h3>
+                <div data-bind="simpleGrid: gridViewModel"></div>
+                <input type="button" data-bind="click: sortTableByName" value="Sort by Game" />
+                <input type="button" data-bind="click: sortTableByPlayers" value="Sort by Players" />
+            </div>
+        </div>
+        <script type="text/javascript" src="scripts/jquery-1.8.0.js"></script>
+        <script type="text/javascript" src="scripts/jQuery.tmpl.js"></script>
+        <script type="text/javascript" src="scripts/jquery.cookie.js"></script>
+        <script type="text/javascript" src="scripts/jquery-ui-1.8.23.js"></script>
+        <script type="text/javascript" src="scripts/json2.js"></script>
+        <script type="text/javascript" src="scripts/knockout-2.1.0.debug.js"></script>
+        <script type="text/javascript" src="scripts/knockout.address.js"></script>
+        <script type="text/javascript" src="scripts/knockout.simpleGrid.js"></script>
+        <script type="text/javascript" src="scripts/spin.min.js"></script>
+        <script type="text/javascript" src="scripts/storage.js"></script>
+        <script type="text/javascript" src="scripts/underscore.js"></script>
+
+        <script type="text/javascript" src="scripts/models/friend.js"></script>
+        <script type="text/javascript" src="scripts/models/game.js"></script>
+        <script type="text/javascript" src="scripts/models/gamer.js"></script>
+        <script type="text/javascript" src="scripts/models/selectable.js"></script>
+        <script type="text/javascript" src="scripts/models/util.js"></script>
+        <script type="text/javascript" src="scripts/models/viewModel.js"></script>
+    </body>
+</html>

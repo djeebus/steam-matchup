@@ -1,0 +1,157 @@
+﻿@foreground: #959595;
+@background-dark: #1E1E1F;
+@background-light: #404242;
+@link: #59A5F5;
+@highlight2: #399C34;
+
+body {
+	background-color: @background-light;
+	color: @foreground;
+	margin: 1em;
+
+	a {
+		color: @link;
+
+		&:link {
+			color: @link;
+		}
+	}
+
+	#ajax-in-progress {
+		display: none;
+		position: fixed;
+		right: 2em;
+		top: 2em;
+		float: right;
+		text-align: right;
+		border: 4px solid @link;
+		border-radius: 4px;
+		padding: 1em;
+		background-color: @background-light;
+	}
+
+	#content-container {
+		background-color: @background-dark;
+		border-radius: 2em;
+		color: @foreground;
+		padding: 1em;
+	}
+
+	.loading {
+		width: 5em;
+		height: 5em;
+	}
+
+	#gamers {
+		.friends {
+		}
+	}
+}
+
+.ui-dialog {
+	background: white;
+	color: @background-dark;
+	border: .5em;
+}
+
+#add-player {
+	display: inline-block;
+	vertical-align: top;
+	width: 15em;
+}
+
+#search-results {
+	display: inline-block;
+	vertical-align: top;
+	width: 15em;
+	padding: 1em;
+	margin-left: 2em;
+
+	h3 {
+		margin: 0;
+	}
+	ul {
+		list-style-type: none;
+		padding-left: 0;
+	}
+}
+
+#filter-dialog {
+	display: none; /* toggled by jquery dialog */
+
+	> div {
+		display: inline-block;
+		width: 15em;
+	}
+}
+
+#tableContainer {
+	table {
+		width: 100%;
+
+		td {
+			border-collapse: collapse;
+			padding-right: .5em;
+
+			span {
+				padding-right: .05em;
+
+				&:after {
+					content: ', ';
+				}
+
+				&:last-child:after {
+					content: '';
+				}
+			}
+
+			&.iconCol {
+				a {
+					display: block;
+
+					img {
+						display: block;
+						width: 145px;
+						height: 67px;
+					}
+				}
+			}
+
+			&.actionsCol {
+				a {
+					padding-left: .5em;
+				}
+			}
+		}
+	}
+}
+
+/* arrow stuff */
+.arrow_box {
+	position: relative;
+	background: @background-light;
+	color: @foreground;
+	border: 4px solid @link;
+}
+.arrow_box:after, .arrow_box:before {
+	right: 100%;
+	border: solid transparent;
+	content: " ";
+	height: 0;
+	width: 0;
+	position: absolute;
+	pointer-events: none;
+}
+
+.arrow_box:after {
+	border-right-color: @background-light;
+	border-width: 30px;
+	top: 50%;
+	margin-top: -30px;
+}
+.arrow_box:before {
+	border-right-color: @link;
+	border-width: 36px;
+	top: 50%;
+	margin-top: -36px;
+}
