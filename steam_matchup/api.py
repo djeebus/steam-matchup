@@ -80,7 +80,7 @@ class SteamGamesHandler(webapp2.RequestHandler):
     def _get_game(self, app_id):
         games = self._get_all_games()
         matching_games = [g for g in games if g['id'] == app_id]
-        if not matching_games or matching_games is None or len(matching_games) == 0:
+        if not matching_games:
             return {
                 'id': app_id,
                 'isValid': False
@@ -91,7 +91,7 @@ class SteamGamesHandler(webapp2.RequestHandler):
             'id': app_id,
             'isValid': True,
             'name': match['name'],
-            'iconUrl': 'http://cdn2.steampowered.com/v/gfx/apps/%s/header.jpg' % app_id,
+            'iconUrl': 'http://cdn.akamai.steamstatic.com/steam/apps/%s/header.jpg' % app_id,
             'features': match['features'],
             'genres': match['genres'],
             'price': match['price'],
