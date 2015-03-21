@@ -1,3 +1,5 @@
+import requests
+
 from os import path
 
 from scrapy.http.request import Request
@@ -15,10 +17,16 @@ def _run_test(file_name, game_url):
 
     import tests
     file_name = path.join(path.dirname(tests.__file__), file_name)
-    with open(file_name, 'r') as f:
-        body = f.read()
+    if path.isfile(file_name):
+        encoding = 'ascii'
+        with open(file_name, 'r') as f:
+            body = f.read()
+    else:
+        response = requests.get(game_url)
+        body = response.text
+        encoding = response.encoding
 
-    response = TextResponse(url=game_url, body=body, request=request)
+    response = TextResponse(url=game_url, body=body, request=request, encoding=encoding)
 
     spider = GameSpider()
 
@@ -37,45 +45,45 @@ def test_parse_left_4_dead_2():
     game = _run_test(file_name, game_url)
 
     assert game['id'] == '550'
-    assert game['features'] == [
-        'Single-player',
-        'Multi-player',
+    assert set(game['features']) == {
+        'Captions available',
         'Co-op',
+        'Commentary available',
+        'Includes Source SDK',
+        'Multi-player',
+        'Single-player',
         'Steam Achievements',
         'Steam Cloud',
-        'Commentary available',
-        'Captions available',
+        'Steam Trading Cards',
+        'Steam Workshop',
         'Stats',
         'Valve Anti-Cheat enabled',
-        'Full controller support',
-        'Includes Source SDK',
-        'Steam Trading Cards',
-        'Steam Workshop',
-    ]
-    assert game['genres'] == [
+    }
+    assert set(game['genres']) == {
         'Action',
-    ]
-    assert game['tags'] == [
-        'Zombies',
-        'FPS',
+    }
+    assert set(game['tags']) == {
+        'Action',
+        'Adventure',
         'Co-op',
+        'First-Person',
+        'FPS',
+        'Gore',
+        'Horror',
+        'Local Co-Op',
+        'Moddable',
         'Multiplayer',
         'Online Co-Op',
-        'Action',
-        'Valve',
-        'Steam Workshop',
+        'Post-apocalyptic',
+        'Replay Value',
         'Shooter',
-        'Moddable',
-        'First-Person',
-        'Steam Trading Cards',
-        'Versus',
-        'Intense',
-        'Addictive',
-        'Local Co-Op',
-        'Tactical',
+        'Singleplayer',
         'Survival',
-        'Pills',
-    ]
+        'Survival Horror',
+        'Tactical',
+        'Team-Based',
+        'Zombies',
+    }
 
 
 def test_parse_simcity_4():
@@ -85,29 +93,28 @@ def test_parse_simcity_4():
     game = _run_test(file_name, game_url)
 
     assert game['id'] == '24780'
-    assert game['features'] == [
+    assert set(game['features']) == {
         'Single-player',
-    ]
-    assert game['genres'] == [
+    }
+    assert set(game['genres']) == {
         'Simulation',
         'Strategy',
-    ]
-    assert game['tags'] == [
-        'Simulation',
+    }
+    assert set(game['tags']) == {
+        'Building',
         'City Builder',
-        'Strategy',
-        'Sandbox',
-        'Management',
         'Classic',
+        'Economy',
+        'Great Soundtrack',
+        'Management',
         'Moddable',
-        'Timesink',
-        'Mod Support',
-        'Singleplayer',
+        'Multiplayer',
         'Real-Time with Pause',
-        'Creative',
-        'Addictive',
-        'Mod-friendly',
-    ]
+        'Sandbox',
+        'Simulation',
+        'Strategy',
+        'Singleplayer',
+    }
 
 
 def test_parse_divinity_dragon_commander():
@@ -117,30 +124,56 @@ def test_parse_divinity_dragon_commander():
     game = _run_test(file_name, game_url)
 
     assert game['id'] == '243950'
-    assert game['features'] == [
-        'Single-player',
+    assert set(game['features']) == {
         'Multi-player',
+        'Single-player',
         'Steam Achievements',
         'Steam Leaderboards',
         'Steam Cloud',
         'Steam Trading Cards',
-    ]
-    assert game['genres'] == [
+    }
+    assert set(game['genres']) == {
         'Action',
         'RPG',
         'Strategy',
-    ]
-    assert game['tags'] == [
+    }
+    assert set(game['tags']) == {
         'Strategy',
         'RPG',
-        'Political',
         'Dragons',
-        'Fantasy',
+        'Political',
         'Action',
-        'Singleplayer',
-        'Turn-based',
+        'Fantasy',
         'RTS',
-        'Real-Time with Pause',
-        'Steam Trading Cards',
+        'Singleplayer',
+        'Turn-Based',
         'Steampunk',
-    ]
+        'Real-Time with Pause',
+        'Multiplayer',
+        'Choices Matter',
+        'Story Rich',
+        'Comedy',
+    }
+
+
+def test_results_page_parser():
+
+    results_url = 'http://store.steampowered.com/search/?sort_by=&sort_order=0&category1=998&page=1'
+
+    request = Request(results_url)
+
+    response = requests.get(results_url)
+    body = response.text
+    encoding = response.encoding
+
+    response = TextResponse(url=results_url, body=body, request=request, encoding=encoding)
+
+    spider = GameSpider()
+
+    results = list(spider.parse(response))
+
+    app_results = [r for r in results if r.url.startswith('http://store.steampowered.com/app/')]
+    assert len(app_results) == 25
+
+    search_results = [r for r in results if r.url.startswith('http://store.steampowered.com/search/')]
+    assert len(search_results) == 3

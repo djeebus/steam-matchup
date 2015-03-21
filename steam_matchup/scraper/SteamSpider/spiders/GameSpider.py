@@ -32,7 +32,7 @@ class GameSpider(BaseSpider):
         log.msg('Parsing "%s"' % response.url, log.INFO)
 
         hxs = HtmlXPathSelector(response)
-        results = hxs.select('//a[@class="search_result_row even" or @class="search_result_row odd"]')
+        results = hxs.select('//a[contains(@class, "search_result_row")]')
 
         for result in results:
             href = result.select('@href').extract()[0]
@@ -76,8 +76,8 @@ class GameSpider(BaseSpider):
             url = url[:len(url) - 1]  # trim last character
 
         specs = hxs.select(
-            "//div[@class='details_block']//div[@class='game_area_details_specs']//a/text()")
-        features = [self._get_feature(s) for s in specs]
+            "//div[contains(@class, 'game_meta_data')]//div[contains(@class, 'game_area_details_specs')]//a/text()")
+        features = {self._get_feature(s) for s in specs}
         tags = [
             t.select('text()').extract()[0].strip()
             for t in hxs.select("//a[@class='app_tag']")
