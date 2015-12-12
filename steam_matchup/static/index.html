@@ -16,10 +16,11 @@
             <header>
                 <h1>Steam Filter</h1>
             </header>
-        
+
             <section id="configuration" class="row">
                 <form id="steam-login" action="/auth/" method="post">
-                    <img src="http://cdn.steamcommunity.com/public/images/signinthroughsteam/sits_large_border.png" 
+                    <input type="hidden" name="openid" value="http://steamcommunity.com/openid">
+                    <img src="http://cdn.steamcommunity.com/public/images/signinthroughsteam/sits_large_border.png"
                          onclick="$(this).parents('form').submit()"
                          height="51" width="118"
                          alt="Sign In Through Steam" />
@@ -81,15 +82,15 @@
 
                 <script type="text/html" id="feature">
                     <li class='feature'>
-                        <input type="checkbox" data-bind="attr: { id: name }, checked: selected"></input>
-                        <label data-bind="attr: { for: name }, text: name"></span>
+                        <input type="checkbox" data-bind="attr: { id: name }, checked: selected"/>
+                        <label data-bind="attr: { for: name }, text: name"></label>
                     </li>
                 </script>
 
                 <script type="text/html" id="genre">
                     <li class='genre'>
-                        <input type="checkbox" data-bind="attr: { id: name }, checked: selected"></input>
-                        <label data-bind="attr: { for: name }, text: name"></span>
+                        <input type="checkbox" data-bind="attr: { id: name }, checked: selected"/>
+                        <label data-bind="attr: { for: name }, text: name"></label>
                     </li>
                 </script>
 

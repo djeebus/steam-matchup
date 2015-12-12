@@ -1,15 +1,33 @@
-#!/usr/bin/env python
-
-# Google App Engine OpenID Relay Party code.
-# Copied from https://github.com/openid/python-openid
-# Modifications by Jude Nelson
-
-import webapp2 
 import steam
 import json
 
+from dogpile.cache import make_region
 
-class SteamGamersHandler(webapp2.RequestHandler):
+region = make_region().configure(
+        'dogpile.cache.memory'
+)
+
+
+def includeme(config):
+    """
+    :type config: pyramid.config.Configurator
+    """
+
+    config.add_route('api: games', '/games')
+    config.add_view(request_method='GET', route_name='api: games',
+                    view=SteamGamesHandler, attr='get',
+                    renderer='json')
+
+    config.add_route('api: gamers', '/gamers')
+    config.add_view(request_method='GET', route_name='api: gamers',
+                    view=SteamGamersHandler, attr='get',
+                    renderer='json')
+
+
+class SteamGamersHandler(object):
+    def __init__(self, request):
+        self.request = request
+
     def get(self):
         steam_client = steam.ApiClient()
 
@@ -18,13 +36,10 @@ class SteamGamersHandler(webapp2.RequestHandler):
 
         summaries_response = steam_client.get_player_summaries(gamer_ids)
         json_players = summaries_response['response']['players']
-        obj = {
+        return {
             'success': True,
             'results': [self._get_player(p, steam_client) for p in json_players]
         }
-
-        self.response.headers['Content-Type'] = 'application/json'
-        self.response.out.write(json.dumps(obj))
 
     def _get_player(self, json_player, steam_client):
         return {
@@ -51,14 +66,10 @@ class SteamGamersHandler(webapp2.RequestHandler):
         }
 
 
-from dogpile.cache import make_region
+class SteamGamesHandler(object):
+    def __init__(self, request):
+        self.request = request
 
-region = make_region().configure(
-    'dogpile.cache.memory'
-)
-
-
-class SteamGamesHandler(webapp2.RequestHandler):
     @region.cache_on_arguments()
     def _get_all_games(self):
         print 'downloading all games'
@@ -69,13 +80,10 @@ class SteamGamesHandler(webapp2.RequestHandler):
     def get(self):
         game_ids = self.request.GET.getall('gameIds')
 
-        obj = {
+        return {
             'success': True,
             'results': [self._get_game(app_id) for app_id in game_ids]
         }
-
-        self.response.headers['Content-Type'] = 'application/json'
-        self.response.out.write(json.dumps(obj))
 
     def _get_game(self, app_id):
         games = self._get_all_games()
@@ -98,10 +106,3 @@ class SteamGamesHandler(webapp2.RequestHandler):
             'release_date': match['release_date'],
             'metascore': match['metascore']
         }
-
-application = webapp2.WSGIApplication(
-    [
-        ('/api/gamers', SteamGamersHandler),
-        ('/api/games', SteamGamesHandler)
-    ], debug=True)
-
