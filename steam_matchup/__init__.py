@@ -23,7 +23,7 @@ def _static_routes(config):
     config.add_route('catchall_static', '/*subpath')
     config.add_view(
             route_name='catchall_static',
-            view=static_view('steam_matchup:static', use_subpath=True),
+            view=static_view('steam_matchup:static/angular', use_subpath=True),
     )
 
 
