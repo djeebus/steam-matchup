@@ -7,13 +7,10 @@ from scrapy.http.response.text import TextResponse
 from steam_matchup.scraper.SteamSpider.spiders.GameSpider import GameSpider
 
 
-def _run_test(file_name, game_url):
-    request = Request(game_url, meta={
-        'name': 'testing',
-        'metascore': 1,
-        'price': '$2.00',
-        'release_date': 'Jan 3rd, 2014',
-    })
+def _run_test(file_name, game_url, valid_data):
+    valid_data['url'] = game_url
+
+    request = Request(game_url, meta={})
 
     import tests
     file_name = path.join(path.dirname(tests.__file__), file_name)
@@ -26,134 +23,152 @@ def _run_test(file_name, game_url):
         body = response.text
         encoding = response.encoding
 
+        with open(file_name, 'w') as f:
+            f.write(body.encode(encoding))
+
     response = TextResponse(url=game_url, body=body, request=request, encoding=encoding)
 
     spider = GameSpider()
 
     game = spider.parse_page(response)
+    for key in ['features', 'tags', 'genres']:
+        game[key] = set(game[key])
 
-    assert game['name'] == 'testing'
-    assert game['url'] == game_url
-
-    return game
+    assert game == valid_data
 
 
 def test_parse_left_4_dead_2():
     file_name = 'left4dead2.html'
     game_url = 'http://store.steampowered.com/app/550'
 
-    game = _run_test(file_name, game_url)
-
-    assert game['id'] == '550'
-    assert set(game['features']) == {
-        'Captions available',
-        'Co-op',
-        'Commentary available',
-        'Includes Source SDK',
-        'Multi-player',
-        'Single-player',
-        'Steam Achievements',
-        'Steam Cloud',
-        'Steam Trading Cards',
-        'Steam Workshop',
-        'Stats',
-        'Valve Anti-Cheat enabled',
-    }
-    assert set(game['genres']) == {
-        'Action',
-    }
-    assert set(game['tags']) == {
-        'Action',
-        'Adventure',
-        'Co-op',
-        'First-Person',
-        'FPS',
-        'Gore',
-        'Horror',
-        'Local Co-Op',
-        'Moddable',
-        'Multiplayer',
-        'Online Co-Op',
-        'Post-apocalyptic',
-        'Replay Value',
-        'Shooter',
-        'Singleplayer',
-        'Survival',
-        'Survival Horror',
-        'Tactical',
-        'Team-Based',
-        'Zombies',
-    }
+    _run_test(file_name, game_url, {
+        'id': '550',
+        'name': 'Left 4 Dead 2',
+        'metascore': '89',
+        'price': '$19.99',
+        'release_date': 'Nov 16, 2009',
+        'features': {
+            u'Captions available',
+            u'Co-op',
+            u'Commentary available',
+            u'Full controller support',
+            u'Includes Source SDK',
+            u'Multi-player',
+            u'Single-player',
+            u'Steam Achievements',
+            u'Steam Cloud',
+            u'Steam Trading Cards',
+            u'Steam Workshop',
+            u'Stats',
+            u'Valve Anti-Cheat enabled',
+        },
+        'genres': {
+            'Action',
+        },
+        'tags': {
+            u'Action',
+            u'Adventure',
+            u'Co-op',
+            u'First-Person',
+            u'FPS',
+            u'Gore',
+            u'Horror',
+            u'Local Co-Op',
+            u'Moddable',
+            u'Multiplayer',
+            u'Online Co-Op',
+            u'Post-apocalyptic',
+            u'Replay Value',
+            u'Shooter',
+            u'Singleplayer',
+            u'Survival',
+            u'Survival Horror',
+            u'Tactical',
+            u'Team-Based',
+            u'Zombies',
+        }
+    })
 
 
 def test_parse_simcity_4():
     file_name = 'simcity4.html'
     game_url = 'http://store.steampowered.com/app/24780'
 
-    game = _run_test(file_name, game_url)
-
-    assert game['id'] == '24780'
-    assert set(game['features']) == {
-        'Single-player',
-    }
-    assert set(game['genres']) == {
-        'Simulation',
-        'Strategy',
-    }
-    assert set(game['tags']) == {
-        'Building',
-        'City Builder',
-        'Classic',
-        'Economy',
-        'Great Soundtrack',
-        'Management',
-        'Moddable',
-        'Multiplayer',
-        'Real-Time with Pause',
-        'Sandbox',
-        'Simulation',
-        'Strategy',
-        'Singleplayer',
-    }
+    _run_test(file_name, game_url, {
+        'id': '24780',
+        'name': u'SimCity\xe2\u201e\xa2 4 Deluxe Edition',
+        'metascore': '',
+        'price': u'$19.99',
+        'release_date': u'Sep 22, 2003',
+        'features': {
+            u'Single-player',
+        },
+        'genres': {
+            u'Simulation',
+            u'Strategy'
+        },
+        'tags': {
+            u'Building',
+            u'City Builder',
+            u'Classic',
+            u'Economy',
+            u'Great Soundtrack',
+            u'Management',
+            u'Moddable',
+            u'Multiplayer',
+            u'Real-Time with Pause',
+            u'Sandbox',
+            u'Simulation',
+            u'Strategy',
+            u'Singleplayer',
+        },
+    })
 
 
 def test_parse_divinity_dragon_commander():
-    file_name = 'divinity-dragon-commander.html'
-    game_url = 'http://store.steampowered.com/app/243950'
-
-    game = _run_test(file_name, game_url)
-
-    assert game['id'] == '243950'
-    assert set(game['features']) == {
-        'Multi-player',
-        'Single-player',
-        'Steam Achievements',
-        'Steam Leaderboards',
-        'Steam Cloud',
-        'Steam Trading Cards',
-    }
-    assert set(game['genres']) == {
-        'Action',
-        'RPG',
-        'Strategy',
-    }
-    assert set(game['tags']) == {
-        'Strategy',
-        'RPG',
-        'Dragons',
-        'Political',
-        'Action',
-        'Fantasy',
-        'RTS',
-        'Singleplayer',
-        'Turn-Based',
-        'Steampunk',
-        'Real-Time with Pause',
-        'Multiplayer',
-        'Choices Matter',
-        'Story Rich',
-        'Comedy',
-    }
+    _run_test(
+        'divinity-dragon-commander.html',
+        'http://store.steampowered.com/app/243950',
+        {
+            'id': '243950',
+            'name': 'Divinity: Dragon Commander',
+            'metascore': '',
+            'price': '$39.99',
+            'release_date': 'Aug 6, 2013',
+            'features': {
+                'Multi-player',
+                'Single-player',
+                'Steam Achievements',
+                'Steam Leaderboards',
+                'Steam Cloud',
+                'Steam Trading Cards',
+            },
+            'tags': {
+                u'Strategy',
+                u'RPG',
+                u'Dragons',
+                u'Political',
+                u'Action',
+                u'Fantasy',
+                u'RTS',
+                u'Singleplayer',
+                u'Turn-Based',
+                u'Steampunk',
+                u'Real-Time with Pause',
+                u'Multiplayer',
+                u'Choices Matter',
+                u'Story Rich',
+                u'Comedy',
+                u'Co-op',
+                u'Great Soundtrack',
+            },
+            'genres': {
+                'Action',
+                'RPG',
+                'Strategy',
+            },
+        },
+    )
 
 
 def test_results_page_parser():

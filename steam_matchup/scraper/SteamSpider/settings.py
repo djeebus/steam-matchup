@@ -14,5 +14,4 @@ NEWSPIDER_MODULE = 'SteamSpider.spiders'
 CONCURRENT_REQUESTS = 64
 CONCURRENT_REQUESTS_PER_DOMAIN = 64
 
-# Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'SteamSpider (+http://www.yourdomain.com)'
+LOG_LEVEL = 'INFO'

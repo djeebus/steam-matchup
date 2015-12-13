@@ -11,6 +11,9 @@ setup(
         'pyramid_openid',
         'scrapy',
         'waitress',
+
+        # in windows, download from http://sourceforge.net/projects/pywin32/
+        # 'pywin32',
     ],
 
     entry_points={

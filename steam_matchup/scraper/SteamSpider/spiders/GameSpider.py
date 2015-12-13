@@ -1,13 +1,14 @@
-from scrapy import log
+import logging
+
 from scrapy.http.request import Request
-from scrapy.selector import HtmlXPathSelector
+from scrapy import Selector
 from ..items import SteamGame
-from scrapy.spider import BaseSpider
+from scrapy.spiders import Spider
 
-__author__ = 'digitaljeebus'
+log = logging.getLogger(__name__)
 
 
-class GameSpider(BaseSpider):
+class GameSpider(Spider):
     name = 'steam_games'
     allowed_domains = ['store.steampowered.com']
     start_urls = [
@@ -28,72 +29,74 @@ class GameSpider(BaseSpider):
 
         return extracted[0]
 
-    def parse(self, response):
-        log.msg('Parsing "%s"' % response.url, log.INFO)
+    BAD_PAGE_NAMES = {'<', '>'}
 
-        hxs = HtmlXPathSelector(response)
-        results = hxs.select('//a[contains(@class, "search_result_row")]')
+    def parse(self, response):
+        log.info('Parsing "%s"' % response.url)
+
+        hxs = Selector(response)
+        results = hxs.xpath('//a[contains(@class, "search_result_row")]')
 
         for result in results:
-            href = result.select('@href').extract()[0]
-            name = self._get_string(result.select('//h4/text()'))
-            metascore = self._get_string(result.select('div[@class="col search_metascore"]/text()'))
-            price = self._get_string(result.select('div[@class="col search_price"]/text()'))
-            release_date = self._get_string(result.select('div[@class="col search_released"]/text()'))
+            href = result.xpath('@href').extract()[0]
 
             yield Request(
                 href,
                 callback=self.parse_page,
                 cookies={'birthtime': '157795201', 'lastagecheckage': '1-January-1975'},
-                meta={'metascore': metascore, 'price': price, 'release_date': release_date, 'name': name})
+            )
 
-        pages = hxs.select('//div[@class="search_pagination_right"]/a')
+        pages = hxs.xpath('//div[@class="search_pagination_right"]/a')
         for page in pages:
-            number = self._get_string(page.select('text()'))
+            number = self._get_string(page.xpath('text()'))
             if not number.isdigit():
-                log.msg('skipping search page called "%s": not a digit' % number, log.INFO)
+                if number not in self.BAD_PAGE_NAMES:
+                    log.info('skipping search page called "%s": not a digit' % number)
                 continue
 
             if number in self.parsed_page_numbers:
-                log.msg('Skipping page: %s' % number, log.INFO)
+                log.debug('Skipping page: %s' % number)
                 continue
 
             self.parsed_page_numbers.add(number)
 
-            log.msg('queueing result page %s' % number, log.DEBUG)
+            log.debug('queueing result page %s' % number)
             yield Request(
-                self._get_string(page.select('@href')),
+                self._get_string(page.xpath('@href')),
                 meta={'page_number:': number}
             )
 
     def parse_page(self, response):
-        hxs = HtmlXPathSelector(response)
-        name = response.meta['name']
+        hxs = Selector(response)
         url = response.url
         if '?' in response.url:
             url = response.url[:response.url.rfind('?') - 1]
         if url[len(url) - 1] == '/':
             url = url[:len(url) - 1]  # trim last character
 
-        specs = hxs.select(
+        name = hxs.xpath('//div[@class="apphub_AppName"]/text()').extract()[0]
+        specs = hxs.xpath(
             "//div[contains(@class, 'game_meta_data')]//div[contains(@class, 'game_area_details_specs')]//a/text()")
         features = {self._get_feature(s) for s in specs}
         tags = [
-            t.select('text()').extract()[0].strip()
-            for t in hxs.select("//a[@class='app_tag']")
+            t.xpath('text()').extract()[0].strip()
+            for t in hxs.xpath("//a[@class='app_tag']")
         ]
-        details_block = hxs.select("//div[@class='details_block']//*[local-name() = 'a' or local-name() = 'b']")
+        details_block = hxs.xpath("//div[@class='details_block']//*[local-name() = 'a' or local-name() = 'b']")
+        metascore = self._get_string(hxs.xpath('//div[@id="game_area_metascore"]/span[not(@class)]/text()'))
+        price = self._get_string(hxs.xpath('//div[@class="game_purchase_price price"]/text()'))
+        release_date = self._get_string(hxs.xpath('//div[@class="release_date"]/span[@class="date"]/text()'))
         found_genre = False
         genres = []
         for detail in details_block:
             if not found_genre:
-                found_genre = 'Genre:' in detail.select('text()').extract()
+                found_genre = 'Genre:' in detail.xpath('text()').extract()
                 continue
 
             if detail._root.tag != 'a':
                 break
 
-            for text in detail.select('text()').extract():
+            for text in detail.xpath('text()').extract():
                 genres.append(text)
 
         return SteamGame(
@@ -104,9 +107,9 @@ class GameSpider(BaseSpider):
             tags=tags,
             genres=[g for g in genres if g],
 
-            metascore=response.meta['metascore'],
-            price=response.meta['price'],
-            release_date=response.meta['release_date']
+            metascore=metascore,
+            price=price.strip(),
+            release_date=release_date,
         )
 
     def _get_feature(self, spec_node):
