@@ -99,6 +99,7 @@ class SteamGamesHandler(object):
             'id': app_id,
             'isValid': True,
             'name': match['name'],
+            'gameUrl': 'http://store.steampowered.com/app/%s' % app_id,
             'iconUrl': 'http://cdn.akamai.steamstatic.com/steam/apps/%s/header.jpg' % app_id,
             'features': match['features'],
             'genres': match['genres'],
