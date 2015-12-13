@@ -1,4 +1,5 @@
 import requests
+import pytest
 
 from os import path
 
@@ -7,42 +8,10 @@ from scrapy.http.response.text import TextResponse
 from steam_matchup.scraper.SteamSpider.spiders.GameSpider import GameSpider
 
 
-def _run_test(file_name, game_url, valid_data):
-    valid_data['url'] = game_url
-
-    request = Request(game_url, meta={})
-
-    import tests
-    file_name = path.join(path.dirname(tests.__file__), file_name)
-    if path.isfile(file_name):
-        encoding = 'ascii'
-        with open(file_name, 'r') as f:
-            body = f.read()
-    else:
-        response = requests.get(game_url)
-        body = response.text
-        encoding = response.encoding
-
-        with open(file_name, 'w') as f:
-            f.write(body.encode(encoding))
-
-    response = TextResponse(url=game_url, body=body, request=request, encoding=encoding)
-
-    spider = GameSpider()
-
-    game = spider.parse_page(response)
-    for key in ['features', 'tags', 'genres']:
-        game[key] = set(game[key])
-
-    assert game == valid_data
-
-
-def test_parse_left_4_dead_2():
-    file_name = 'left4dead2.html'
-    game_url = 'http://store.steampowered.com/app/550'
-
-    _run_test(file_name, game_url, {
+games_to_test = {
+    'left 4 dead 2': {
         'id': '550',
+        'url': 'http://store.steampowered.com/app/550',
         'name': 'Left 4 Dead 2',
         'metascore': '89',
         'price': '$19.99',
@@ -86,16 +55,11 @@ def test_parse_left_4_dead_2():
             u'Tactical',
             u'Team-Based',
             u'Zombies',
-        }
-    })
-
-
-def test_parse_simcity_4():
-    file_name = 'simcity4.html'
-    game_url = 'http://store.steampowered.com/app/24780'
-
-    _run_test(file_name, game_url, {
+        },
+    },
+    'simcity 4 deluxe': {
         'id': '24780',
+        'url': 'http://store.steampowered.com/app/24780',
         'name': u'SimCity\xe2\u201e\xa2 4 Deluxe Edition',
         'metascore': '',
         'price': u'$19.99',
@@ -122,53 +86,107 @@ def test_parse_simcity_4():
             u'Strategy',
             u'Singleplayer',
         },
-    })
-
-
-def test_parse_divinity_dragon_commander():
-    _run_test(
-        'divinity-dragon-commander.html',
-        'http://store.steampowered.com/app/243950',
-        {
-            'id': '243950',
-            'name': 'Divinity: Dragon Commander',
-            'metascore': '',
-            'price': '$39.99',
-            'release_date': 'Aug 6, 2013',
-            'features': {
-                'Multi-player',
-                'Single-player',
-                'Steam Achievements',
-                'Steam Leaderboards',
-                'Steam Cloud',
-                'Steam Trading Cards',
-            },
-            'tags': {
-                u'Strategy',
-                u'RPG',
-                u'Dragons',
-                u'Political',
-                u'Action',
-                u'Fantasy',
-                u'RTS',
-                u'Singleplayer',
-                u'Turn-Based',
-                u'Steampunk',
-                u'Real-Time with Pause',
-                u'Multiplayer',
-                u'Choices Matter',
-                u'Story Rich',
-                u'Comedy',
-                u'Co-op',
-                u'Great Soundtrack',
-            },
-            'genres': {
-                'Action',
-                'RPG',
-                'Strategy',
-            },
+    },
+    'divinity: dragon commander': {
+        'id': '243950',
+        'url': 'http://store.steampowered.com/app/243950',
+        'name': 'Divinity: Dragon Commander',
+        'metascore': '',
+        'price': '$39.99',
+        'release_date': 'Aug 6, 2013',
+        'features': {
+            'Multi-player',
+            'Single-player',
+            'Steam Achievements',
+            'Steam Leaderboards',
+            'Steam Cloud',
+            'Steam Trading Cards',
         },
-    )
+        'tags': {
+            u'Strategy',
+            u'RPG',
+            u'Dragons',
+            u'Political',
+            u'Action',
+            u'Fantasy',
+            u'RTS',
+            u'Singleplayer',
+            u'Turn-Based',
+            u'Steampunk',
+            u'Real-Time with Pause',
+            u'Multiplayer',
+            u'Choices Matter',
+            u'Story Rich',
+            u'Comedy',
+            u'Co-op',
+            u'Great Soundtrack',
+        },
+        'genres': {
+            'Action',
+            'RPG',
+            'Strategy',
+        },
+    },
+    'bob came in pieces': {
+        'id': '46000',
+        'url': 'http://store.steampowered.com/app/46000',
+        'name': 'Bob Came in Pieces',
+        'metascore': '73',
+        'price': '$6.99',
+        'release_date': 'Jan 22, 2010',
+        'features': {
+            'Single-player',
+            'Steam Achievements',
+            'Partial Controller Support',
+            'Steam Cloud',
+            'Steam Leaderboards',
+        },
+        'tags': {
+            'Indie',
+            'Adventure',
+            'Puzzle',
+            'Physics',
+        },
+        'genres': {
+            'Adventure',
+            'Indie',
+        },
+    }
+}
+
+
+@pytest.mark.parametrize("game_name", games_to_test)
+def test_parser(game_name):
+    valid_data = games_to_test[game_name]
+
+    file_name = '%s.html' % valid_data['id']
+    game_url = valid_data['url']
+
+    request = Request(game_url, meta={})
+
+    import tests
+    file_name = path.join(path.dirname(tests.__file__), file_name)
+    if path.isfile(file_name):
+        encoding = 'ascii'
+        with open(file_name, 'r') as f:
+            body = f.read()
+    else:
+        response = requests.get(game_url)
+        body = response.text
+        encoding = response.encoding
+
+        with open(file_name, 'w') as f:
+            f.write(body.encode(encoding))
+
+    response = TextResponse(url=game_url, body=body, request=request, encoding=encoding)
+
+    spider = GameSpider()
+
+    game = spider.parse_page(response)
+    for key in ['features', 'tags', 'genres']:
+        game[key] = set(game[key])
+
+    assert game == valid_data
 
 
 def test_results_page_parser():
