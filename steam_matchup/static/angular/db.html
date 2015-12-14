@@ -2,10 +2,10 @@
     <div id="gamers">
         <h3>Gamers</h3>
         <ul>
-            <li class='gamer' ng-repeat="gamer in gamers track by gamer.id">
+            <li class='gamer' ng-repeat="gamer in gamers | orderBy:'name' track by gamer.id">
                 <span>{{ gamer.name }}</span>
                 <ul class="friends" >
-                    <li class='friend' ng-repeat="friend in gamer.friends track by friend.id">
+                    <li class='friend' ng-repeat="friend in gamer.friends | orderBy:'name' track by friend.id">
                         <span>{{ friend.name }}</span>
                         <a href="#" ng-click="select">add</a>
                     </li>
@@ -16,22 +16,31 @@
 </section>
 
 <div id="tableContainer">
-    <h3>Games (<a href="#" ng-click="showFilterDialog">filter</a>)</h3>
+    <h3>Games (<a ng-href="#/filters">filter</a>)</h3>
 
     <table>
         <thead>
             <tr>
                 <th>Game</th>
+                <th>Players</th>
+                <th>Genres</th>
+                <th>Features</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
-            <tr ng-repeat="game in games track by game.id">
+            <tr ng-repeat="game in games | orderBy: 'name' track by game.id">
                 <td class="iconCol">
                     <a ng-href="{{ game.gameUrl }}" target="_blank">
-                        <img ng-src="{{ game.iconUrl }}">
+                        <img ng-src="{{ game.iconUrl }}" alt="{{ game.name }}">
                     </a>
                 </td>
-                <td> {{ game.name }}</td>
+                <td>{{ game.players.join(', ') }}</td>
+                <td>{{ game.genres.join(', ') }}</td>
+                <td>{{ game.features.join(', ') }}</td>
+                <td>
+                    <a ng-href="steam://run/{{ game.id }}">Play {{ name }}</a>
+                </td>
             </tr>
         </tbody>
     </table>

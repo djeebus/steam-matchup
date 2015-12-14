@@ -1,17 +1,15 @@
-import steam
 import json
+import steam
 
-from dogpile.cache import make_region
-
-region = make_region().configure(
-        'dogpile.cache.memory'
-)
-
+from steam_matchup import cache_region
 
 def includeme(config):
     """
     :type config: pyramid.config.Configurator
     """
+
+    all_games = _load_games()
+    config.add_request_method(lambda r: all_games, 'games', reify=True)
 
     config.add_route('api: games', '/games')
     config.add_view(request_method='GET', route_name='api: games',
@@ -24,6 +22,14 @@ def includeme(config):
                     renderer='json')
 
 
+def _load_games():
+    fp = open('games.json', 'r')
+    games = json.load(fp)
+    games = {int(game['id']): game for game in games}
+    print("found %s games" % len(games))
+    return games
+
+
 class SteamGamersHandler(object):
     def __init__(self, request):
         self.request = request
@@ -31,8 +37,7 @@ class SteamGamersHandler(object):
     def get(self):
         steam_client = steam.ApiClient()
 
-        gamer_ids_string = self.request.GET['gamerIds']
-        gamer_ids = gamer_ids_string.split(',')
+        gamer_ids = self.request.GET.getall('gamerId')
 
         summaries_response = steam_client.get_player_summaries(gamer_ids)
         json_players = summaries_response['response']['players']
@@ -70,15 +75,8 @@ class SteamGamesHandler(object):
     def __init__(self, request):
         self.request = request
 
-    @region.cache_on_arguments()
-    def _get_all_games(self):
-        print 'downloading all games'
-        fp = open('games.json', 'r')
-        games = json.load(fp)
-        return games
-
     def get(self):
-        game_ids = self.request.GET.getall('gameIds')
+        game_ids = self.request.GET.getall('gameId')
 
         return {
             'success': True,
@@ -86,15 +84,13 @@ class SteamGamesHandler(object):
         }
 
     def _get_game(self, app_id):
-        games = self._get_all_games()
-        matching_games = [g for g in games if g['id'] == app_id]
-        if not matching_games:
+        match = self.request.games.get(int(app_id))
+        if not match:
             return {
                 'id': app_id,
                 'isValid': False
             }
 
-        match = matching_games[0]
         return {
             'id': app_id,
             'isValid': True,

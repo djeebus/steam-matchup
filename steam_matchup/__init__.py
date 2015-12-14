@@ -1,4 +1,9 @@
 from pyramid.config import Configurator
+from dogpile.cache import make_region
+
+cache_region = make_region().configure(
+        'dogpile.cache.memory'
+)
 
 
 def main(global_config, **settings):

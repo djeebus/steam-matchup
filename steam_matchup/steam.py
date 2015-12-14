@@ -1,9 +1,9 @@
-__author__ = 'jlombrozo'
-
 import json
 import logging
+import time
 import urllib
 
+from steam_matchup import cache_region
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +42,7 @@ class ApiClient(object):
     def get_all_games(self):
         return self._make_api_call('ISteamApps', 'GetAppList', '0002')
 
+    @cache_region.cache_on_arguments()
     def _make_api_call(self, interface_method, method_name, version, qs=None):
         if qs is None:
             qs = {}
@@ -56,9 +57,13 @@ class ApiClient(object):
             "query": urllib.urlencode(qs)
         }
 
-        logger.debug("steam request => %s" % url)
+        # logger.debug("steam request => %s" % url)
 
+        start = time.time()
         f = urllib.urlopen(url)
         content = f.read()
+        data = json.loads(content)
+        end = time.time()
+        logger.info('steam call to %s/%s took %s seconds' % (interface_method, method_name, end - start))
 
-        return json.loads(content)
+        return data
