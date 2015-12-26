@@ -1,3 +1,2 @@
-scraper
 steam_matchup
 tests

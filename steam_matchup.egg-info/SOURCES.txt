@@ -1,10 +1,3 @@
-scraper/__init__.py
-scraper/SteamSpider/__init__.py
-scraper/SteamSpider/items.py
-scraper/SteamSpider/pipelines.py
-scraper/SteamSpider/settings.py
-scraper/SteamSpider/spiders/GameSpider.py
-scraper/SteamSpider/spiders/__init__.py
 steam_matchup/__init__.py
 steam_matchup/api.py
 steam_matchup/auth.py
@@ -15,5 +8,12 @@ steam_matchup.egg-info/dependency_links.txt
 steam_matchup.egg-info/entry_points.txt
 steam_matchup.egg-info/requires.txt
 steam_matchup.egg-info/top_level.txt
+steam_matchup/scraper/__init__.py
+steam_matchup/scraper/SteamSpider/__init__.py
+steam_matchup/scraper/SteamSpider/items.py
+steam_matchup/scraper/SteamSpider/pipelines.py
+steam_matchup/scraper/SteamSpider/settings.py
+steam_matchup/scraper/SteamSpider/spiders/GameSpider.py
+steam_matchup/scraper/SteamSpider/spiders/__init__.py
 tests/__init__.py
 tests/test_parser.py

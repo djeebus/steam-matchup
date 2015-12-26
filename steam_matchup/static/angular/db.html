@@ -28,8 +28,27 @@
                 <th></th>
             </tr>
         </thead>
+        <tfoot>
+            <td colspan="5">
+                <ul class="pagination">
+                    <li ng-class="{disabled: currentPage == 0}">
+                        <a href ng-click="prevPage()"><< prev</a>
+                    </li>
+
+                    <li ng-repeat="n in range(pagedItems.length, currentPage, currentPage + gap) "
+                        ng-class="{active: n == currentPage}"
+                        ng-click="setPage()">
+                        <a href ng-bind="n + 1">1</a>
+                    </li>
+
+                    <li ng-class="{disabled: currentPage == pagedItems - 1}">
+                        <a href ng-click="nextPage()">next >></a>
+                    </li>
+                </ul>
+            </td>
+        </tfoot>
         <tbody>
-            <tr ng-repeat="game in games | orderBy: 'name' track by game.id">
+            <tr ng-repeat="game in pagedItems[currentPage] | orderBy: 'name' track by game.id">
                 <td class="iconCol">
                     <a ng-href="{{ game.gameUrl }}" target="_blank">
                         <img ng-src="{{ game.iconUrl }}" alt="{{ game.name }}">

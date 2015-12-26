@@ -1,5 +1,5 @@
 angular
-    .module('matchupApp', ['ngRoute', 'matchupControllers'])
+    .module('matchupApp', ['ngRoute', 'ngStorage', 'matchupControllers'])
     .config(['$compileProvider', function ($compileProvider) {
         // steam:// links are also acceptable
         $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|ftp|mailto|steam):/);
@@ -61,6 +61,9 @@ angular
                 });
         });
     })
+    .factory('filterService', function (filterFilter, $localStorage, gamesLibrary) {
+        return new FilterService(filterFilter, $localStorage, gamesLibrary);
+    })
     .factory('gamesLibrary', function () {
         return new GamesLibrary();
     })
@@ -120,19 +123,33 @@ function GamesLibrary() {
     };
 
     self.getFeatures = function getFeatures() {
-        return Object.keys(features);
-    };
+        var featureModels = [];
+        for (var feature in features) {
+            if (!features.hasOwnProperty(feature)) {
+                continue;
+            }
 
-    self.getFeatureCounts = function getFeatureCounts() {
-        return features;
+            featureModels.push({
+                name: feature,
+                count: features[feature]
+            })
+        }
+        return featureModels;
     };
 
     self.getGenres = function getGenres() {
-        return Object.keys(genres);
-    };
+        var genreModels = [];
+        for (var genre in genres) {
+            if (!genres.hasOwnProperty(genre)) {
+                continue;
+            }
 
-    self.getGenreCounts = function getGenreCounts() {
-        return genres;
+            genreModels.push({
+                name: genre,
+                count: genres[genre]
+            })
+        }
+        return genreModels;
     };
 }
 
@@ -173,4 +190,75 @@ function ApiClient($http, $q) {
                 }, reject);
         });
     };
+}
+
+function FilterService($filterFilter, $localStorage, gamesLibrary) {
+    var self = this;
+
+    var storage = $localStorage.$default({
+        features: [],
+        genres: []
+    });
+
+    function toggle(items, value, select) {
+        var index = items.indexOf(value);
+        if (select == undefined) {
+            select = index == -1;
+        }
+
+        if (select) {
+            items.push(value);
+        } else {
+            items.splice(index, 1);
+        }
+    }
+
+    self.toggleFeature = function toggleFeature(feature) {
+        toggle(storage.features, feature);
+    };
+
+    self.toggleGenre = function toggleGenre(genre) {
+        toggle(storage.genres, genre);
+    };
+
+    self.getSelectedFeatures = function getSelectedFeatures() {
+        return storage.features;
+    };
+
+    self.getSelectedGenres = function getSelectedGenres() {
+        return storage.genres;
+    };
+
+    function hasAllItems(needles, haystack) {
+        if (needles.length == 0) {
+            return true;
+        }
+
+        for (var index = 0; index < needles.length; index++) {
+            if (haystack.indexOf(needles[index]) === -1) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    self.getFilteredGames = function getFilteredGames() {
+        var games = gamesLibrary.getGames();
+
+        var selectedFeatures = self.getSelectedFeatures();
+        var selectedGenres = self.getSelectedGenres();
+
+        return $filterFilter(games, function (game) {
+            if (!hasAllItems(selectedFeatures, game.features)) {
+                return false;
+            }
+
+            if (!hasAllItems(selectedGenres, game.genres)) {
+                return false;
+            }
+
+            return true;
+        });
+    }
 }

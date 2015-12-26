@@ -2,9 +2,10 @@
     <div id="features">
         <h3>Features</h3>
         <ul>
-            <li class='feature' ng-repeat="feature in features">
-                <input type="checkbox" id="{{ feature }}"/>
-                <label for="{{ feature }}">{{ feature }} [{{ featureCounts[feature] }}]</label>
+            <li class='feature' ng-repeat="feature in features | orderBy: 'label'">
+                <input type="checkbox" id="{{ feature.label }}"
+                       ng-model="feature.selected" ng-change="toggle('feature', feature)"/>
+                <label for="{{ feature.label }}">{{ feature.label }} [{{ feature.count }}]</label>
             </li>
         </ul>
     </div>
@@ -12,9 +13,10 @@
     <div id="genres">
         <h3>Genres</h3>
         <ul>
-            <li class='genre' ng-repeat="(name, count) in genres">
-                <input type="checkbox" id="{{ name }}"/>
-                <label for="{{ name }}">{{ name }} [{{ count }}]</label>
+            <li class='genre' ng-repeat="genre in genres | orderBy: 'label'">
+                <input type="checkbox" id="{{ genre.label }}"
+                       ng-model="genre.selected" ng-change="toggle('genre', genre)"/>
+                <label for="{{ genre.label }}">{{ genre.label }} [{{ genre.count }}]</label>
             </li>
         </ul>
     </div>
@@ -23,4 +25,10 @@
         <h3>Common Gamers</h3>
         <ul data-bind="template: { name: 'users', foreach: commonUsers }"></ul>
     </div>
+
+    <div id="matched-games">
+        Matched games: {{ matched_games_count }} / {{ total_games_count }}
+    </div>
+
+    <button ng-click="done()">Display Results</button>
 </div>
