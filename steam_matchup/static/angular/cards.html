@@ -1,0 +1,24 @@
+<div id="filterSummary">
+    <h3><a ng-href="#/filters">Filters</a></h3>
+    <div>Features: <span ng-repeat="feature in selectedFeatures">{{ feature }}</span></div>
+    <div>Genres: <span ng-repeat="genre in selectedGenres">{{ genre }}</span></div>
+</div>
+
+<div>
+    Views: <a ng-href="#/table">Table</a> | Cards
+</div>
+
+<div id="gameCardContainer">
+    <article class="gameCard"
+         ng-repeat="game in games | orderBy:'name' track by game.id">
+        <a ng-href="{{ game.gameUrl }}" title="{{ game.name }}" target="_blank">
+            <img ng-src="{{ game.iconUrl }}" alt="{{ game.name }}">
+        </a>
+
+        <div class="items">
+            <span class="item"
+                 ng-repeat="item in game.genres.concat(game.features)">{{ item }}</span>
+        </div>
+
+    </article>
+</div>

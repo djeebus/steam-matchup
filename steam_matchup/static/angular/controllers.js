@@ -47,23 +47,20 @@ angular.module('matchupControllers', ['ngCookies'])
         };
 
         $scope.done = function done() {
-            $location.path('/db');
+            $location.path('/table');
         };
 
         refreshCounts();
     })
+    .controller('CardCtrl', function ($scope, filterService) {
+        $scope.games = filterService.getFilteredGames();
+        $scope.selectedFeatures = filterService.getSelectedFeatures();
+        $scope.selectedGenres = filterService.getSelectedGenres();
+    })
     .controller('DbCtrl', function(
-        $location, $cookies, $rootScope,
-        $scope, $filter, gamesLibrary, filterService
+        $scope, filterService
     ) {
         $scope.gamers = [];
-        $scope.games = gamesLibrary.getGames();
-
-        // paging, taken from http://jsfiddle.net/SAWsA/1754/
-        $scope.sort = {
-            sortingOrder: 'id',
-            reverse: false
-        };
 
         // paging config
         $scope.gap = 5;
@@ -92,16 +89,6 @@ angular.module('matchupControllers', ['ngCookies'])
 
         $scope.search = function search() {
             $scope.filteredItems = filterService.getFilteredGames();
-
-            if ($scope.sort.sortingOrder !== '') {
-                var $orderBy = $filter('orderBy');
-                $scope.filteredItems = $orderBy(
-                    $scope.filteredItems,
-                    $scope.sort.sortingOrder,
-                    $scope.sort.reverse
-                );
-            }
-
             $scope.currentPage = 0;
             $scope.groupToPages();
         };
@@ -128,7 +115,9 @@ angular.module('matchupControllers', ['ngCookies'])
             }
 
             for (var i = start; i < end; i++) {
-                ret.push(i);
+                if (i > 0) {
+                    ret.push(i);
+                }
             }
 
             return ret;
@@ -145,7 +134,7 @@ angular.module('matchupControllers', ['ngCookies'])
         }
 
         $rootScope.profileId = profileId;
-        $location.path('/db');
+        $location.path('/table');
     });
 
 

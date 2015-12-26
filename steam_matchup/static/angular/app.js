@@ -13,9 +13,14 @@ angular
             .when('/login', {
                 templateUrl: 'auth.html'
             })
-            .when('/db', {
+            .when('/cards', {
+                controller: 'CardCtrl',
+                templateUrl: 'cards.html',
+                resolve: {'init': function (init) { return init; }}
+            })
+            .when('/table', {
                 controller: 'DbCtrl',
-                templateUrl: 'db.html',
+                templateUrl: 'table.html',
                 resolve: {'init': function (init) { return init; }}
             })
             .when('/filters', {
