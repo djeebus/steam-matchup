@@ -84,6 +84,7 @@ function GamesLibrary() {
     var gameList = [];
     var features = {};
     var genres = {};
+    var tags = {};
 
     self.getGame = function getGame(gameId) {
         if (!self.hasGame(gameId)) {
@@ -106,21 +107,19 @@ function GamesLibrary() {
         gameMap[game.id] = game;
         gameList.push(game);
 
-        angular.forEach(game.features, function (f) {
-            if (!features.hasOwnProperty(f)) {
-                features[f] = 0;
-            }
+        function addToIndex(items, index) {
+            angular.forEach(items, function (item) {
+                if (!index.hasOwnProperty(item)) {
+                    index[item] = 0;
+                }
 
-            features[f]++;
-        });
+                index[item]++;
+            })
+        }
 
-        angular.forEach(game.genres, function (g) {
-            if (!genres.hasOwnProperty(g)) {
-                genres[g] = 0;
-            }
-
-            genres[g]++;
-        });
+        addToIndex(game.features, features);
+        addToIndex(game.genres, genres);
+        addToIndex(game.tags, tags);
     };
 
     self.getGames = function getGames() {
@@ -156,6 +155,21 @@ function GamesLibrary() {
         }
         return genreModels;
     };
+
+    self.getTags = function getTags() {
+        var tagModels = [];
+        for (var tag in tags) {
+            if (!tags.hasOwnProperty(tag)) {
+                continue;
+            }
+
+            tagModels.push({
+                name: tag,
+                count: tags[tag]
+            });
+        }
+        return tagModels;
+    }
 }
 
 function ApiClient($http, $q) {
@@ -202,7 +216,8 @@ function FilterService($filterFilter, $localStorage, gamesLibrary) {
 
     var storage = $localStorage.$default({
         features: [],
-        genres: []
+        genres: [],
+        tags: []
     });
 
     function toggle(items, value, select) {
@@ -226,12 +241,20 @@ function FilterService($filterFilter, $localStorage, gamesLibrary) {
         toggle(storage.genres, genre);
     };
 
+    self.toggleTag = function toggleTag(tag) {
+        toggle(storage.tags, tag);
+    };
+
     self.getSelectedFeatures = function getSelectedFeatures() {
         return storage.features;
     };
 
     self.getSelectedGenres = function getSelectedGenres() {
         return storage.genres;
+    };
+
+    self.getSelectedTags = function getSelectedTags() {
+        return storage.tags;
     };
 
     function hasAllItems(needles, haystack) {
@@ -253,6 +276,7 @@ function FilterService($filterFilter, $localStorage, gamesLibrary) {
 
         var selectedFeatures = self.getSelectedFeatures();
         var selectedGenres = self.getSelectedGenres();
+        var selectedTags = self.getSelectedTags();
 
         return $filterFilter(games, function (game) {
             if (!hasAllItems(selectedFeatures, game.features)) {
@@ -260,6 +284,10 @@ function FilterService($filterFilter, $localStorage, gamesLibrary) {
             }
 
             if (!hasAllItems(selectedGenres, game.genres)) {
+                return false;
+            }
+
+            if (!hasAllItems(selectedTags, game.tags)) {
                 return false;
             }
 

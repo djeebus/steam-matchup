@@ -3,9 +3,9 @@
         <h3>Features</h3>
         <ul>
             <li class='feature' ng-repeat="feature in features | orderBy: 'label'">
-                <input type="checkbox" id="{{ feature.label }}"
+                <input type="checkbox" id="feature_{{ feature.label }}"
                        ng-model="feature.selected" ng-change="toggle('feature', feature)"/>
-                <label for="{{ feature.label }}">{{ feature.label }} [{{ feature.count }}]</label>
+                <label for="feature_{{ feature.label }}">{{ feature.label }} [{{ feature.count }}]</label>
             </li>
         </ul>
     </div>
@@ -14,9 +14,20 @@
         <h3>Genres</h3>
         <ul>
             <li class='genre' ng-repeat="genre in genres | orderBy: 'label'">
-                <input type="checkbox" id="{{ genre.label }}"
+                <input type="checkbox" id="genre_{{ genre.label }}"
                        ng-model="genre.selected" ng-change="toggle('genre', genre)"/>
-                <label for="{{ genre.label }}">{{ genre.label }} [{{ genre.count }}]</label>
+                <label for="genre_{{ genre.label }}">{{ genre.label }} [{{ genre.count }}]</label>
+            </li>
+        </ul>
+    </div>
+
+    <div id="tags">
+        <h3>Tags (at least <input type="number" ng-model="searchValues.minTagCount">)</h3>
+        <ul>
+            <li class="tag" ng-repeat="tag in tags | filter:atLeast('count', searchValues.minTagCount) | orderBy: 'label'">
+                <input type="checkbox" id="tag_{{ tag.label }}"
+                       ng-model="tag.selected" ng-change="toggle('tag', tag)"/>
+                <label for="tag_{{ tag.label }}">{{ tag.label }} [{{ tag.count }}]</label>
             </li>
         </ul>
     </div>

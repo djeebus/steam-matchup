@@ -1,5 +1,13 @@
 angular.module('matchupControllers', ['ngCookies'])
-    .controller('FilterCtrl', function ($location, $cookies, $scope, gamesLibrary, filterService) {
+    .controller('FilterCtrl', function (
+        $location, $cookies, $scope, $localStorage,
+        gamesLibrary, filterService
+    ) {
+        var searchValues = $localStorage.$default({
+            minTagCount: 15
+        });
+
+        $scope.searchValues = searchValues;
         function createSelectableModels(items, selectedItems) {
             var models = [];
             for (var itemIndex = 0; itemIndex < items.length; itemIndex++) {
@@ -32,12 +40,26 @@ angular.module('matchupControllers', ['ngCookies'])
             filterService.getSelectedGenres()
         );
 
+        $scope.tags = createSelectableModels(
+            gamesLibrary.getTags(),
+            filterService.getSelectedTags()
+        );
+
+        $scope.atLeast = function atLeast(prop, number) {
+            return function greaterThanFilter(item) {
+                return item[prop] >= number;
+            };
+        };
+
         var toggleMap = {
             genre: function (v, s) {
                 filterService.toggleGenre(v, s);
             },
             feature: function (v, s) {
                 filterService.toggleFeature(v, s);
+            },
+            tag: function (v, s) {
+                filterService.toggleTag(v, s);
             }
         };
         $scope.toggle = function toggle(type, value) {
@@ -56,6 +78,7 @@ angular.module('matchupControllers', ['ngCookies'])
         $scope.games = filterService.getFilteredGames();
         $scope.selectedFeatures = filterService.getSelectedFeatures();
         $scope.selectedGenres = filterService.getSelectedGenres();
+        $scope.selectedTags = filterService.getSelectedTags();
     })
     .controller('DbCtrl', function(
         $scope, filterService

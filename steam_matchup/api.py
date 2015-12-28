@@ -99,6 +99,7 @@ class SteamGamesHandler(object):
             'iconUrl': 'http://cdn.akamai.steamstatic.com/steam/apps/%s/header.jpg' % app_id,
             'features': match['features'],
             'genres': match['genres'],
+            'tags': match['tags'],
             'price': match['price'],
             'release_date': match['release_date'],
             'metascore': match['metascore']
