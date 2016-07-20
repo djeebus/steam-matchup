@@ -5,7 +5,7 @@ from os import path
 
 from scrapy.http.request import Request
 from scrapy.http.response.text import TextResponse
-from steam_matchup.scraper.SteamSpider.spiders.GameSpider import GameSpider
+from scraper import GameSpider
 
 
 games_to_test = {
@@ -60,7 +60,7 @@ games_to_test = {
     'simcity 4 deluxe': {
         'id': '24780',
         'url': 'http://store.steampowered.com/app/24780',
-        'name': u'SimCity\xe2\u201e\xa2 4 Deluxe Edition',
+        'name': u'SimCity™ 4 Deluxe Edition',
         'metascore': '',
         'price': u'$19.99',
         'release_date': u'Sep 22, 2003',
@@ -167,18 +167,17 @@ def test_parser(game_name):
     import tests
     file_name = path.join(path.dirname(tests.__file__), file_name)
     if path.isfile(file_name):
-        encoding = 'ascii'
-        with open(file_name, 'r') as f:
+        with open(file_name, 'br') as f:
             body = f.read()
     else:
         response = requests.get(game_url)
-        body = response.text
-        encoding = response.encoding
+        body = response.content
 
-        with open(file_name, 'w') as f:
-            f.write(body.encode(encoding))
+        with open(file_name, 'bw') as f:
+            f.write(body)
 
-    response = TextResponse(url=game_url, body=body, request=request, encoding=encoding)
+    response = TextResponse(url=game_url, body=body.decode('utf-8'),
+                            request=request, encoding='utf-8')
 
     spider = GameSpider()
 
@@ -193,13 +192,16 @@ def test_results_page_parser():
 
     results_url = 'http://store.steampowered.com/search/?sort_by=&sort_order=0&category1=998&page=1'
 
-    request = Request(results_url)
+    request = Request(results_url, meta={'cookiejar': 0})
 
     response = requests.get(results_url)
     body = response.text
     encoding = response.encoding
 
-    response = TextResponse(url=results_url, body=body, request=request, encoding=encoding)
+    response = TextResponse(
+        url=results_url, body=body,
+        request=request, encoding=encoding,
+    )
 
     spider = GameSpider()
 
