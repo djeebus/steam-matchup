@@ -7,4 +7,4 @@ then
   rm $OUTPUT
 fi
 
-scrapy runspider scraper.py -o $OUTPUT -t json -L INFO
+time scrapy runspider scraper.py -o $OUTPUT -t json -L INFO
