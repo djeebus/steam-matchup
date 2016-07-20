@@ -1,20 +1,17 @@
 from setuptools import setup, find_packages
 
+install_reqs = open('reqs/install.in').readlines()
+
+
 setup(
     name='steam-matchup',
     version='0.0.0',
     packages=find_packages(),
 
-    install_requires=[
-        'dogpile.cache',
-        'pyramid',
-        'pyramid_openid',
-        'scrapy',
-        'waitress',
-
-        # in windows, download from http://sourceforge.net/projects/pywin32/
-        # 'pywin32',
-    ],
+    install_requires=install_reqs,
+    extras_require={
+        'windows': ['pywin32'],
+    },
 
     entry_points={
         'paste.app_factory': {

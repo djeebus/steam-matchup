@@ -1,0 +1,5 @@
+dogpile.cache
+pyramid
+pyramid_openid
+scrapy
+waitress

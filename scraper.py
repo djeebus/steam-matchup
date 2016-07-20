@@ -1,22 +1,69 @@
-import logging
-
-from scrapy.http.request import Request
-from scrapy import Selector
-from ..items import SteamGame
-from scrapy.spiders import Spider
-
-log = logging.getLogger(__name__)
+import scrapy
 
 
-class GameSpider(Spider):
+class GameSpider(scrapy.Spider):
     name = 'steam_games'
+    custom_settings = {
+        'COOKIES_ENABLED': True,
+        # 'COOKIES_DEBUG': True,
+    }
     allowed_domains = ['store.steampowered.com']
     start_urls = [
-        'http://store.steampowered.com/search/?category1=998'
+        'http://store.steampowered.com/search/?category1=998',
     ]
 
-    def __init__(self):
-        self.parsed_page_numbers = {1}
+    parsed_page_numbers = {1}
+
+    BAD_PAGE_NAMES = {'<', '>'}
+
+    def make_requests_from_url(self, url):
+        return scrapy.Request(url, dont_filter=True,
+                              meta={'cookiejar': 0})
+
+    def parse(self, response):
+        self.logger.info('Parsing "%s"' % response.url)
+
+        cookiejar = response.meta['cookiejar']
+
+        hxs = scrapy.Selector(response)
+        results = hxs.xpath('//a[contains(@class, "search_result_row")]')
+
+        for result in results:
+            href = result.xpath('@href').extract()[0]
+
+            yield scrapy.Request(
+                href,
+                callback=self.parse_page,
+                meta={'cookiejar': cookiejar},
+                cookies={
+                    'birthtime': '28801',
+                    'lastagecheckage': '1-January-1975',
+                    'mature_content': '1',
+                },
+            )
+
+        pages = hxs.xpath('//div[@class="search_pagination_right"]/a')
+        for page in pages:
+            number = self._get_string(page.xpath('text()'))
+            if not number.isdigit():
+                if number not in self.BAD_PAGE_NAMES:
+                    self.logger.info('skipping search page called "%s": not a digit' % number)
+                continue
+
+            if number in self.parsed_page_numbers:
+                self.logger.debug('Skipping page: %s' % number)
+                continue
+
+            self.parsed_page_numbers.add(number)
+
+            self.logger.debug('queueing result page %s' % number)
+            yield scrapy.Request(
+                self._get_string(page.xpath('@href')),
+                meta={
+                    'page_number:': number,
+                    'cookiejar': cookiejar,
+                },
+            )
 
     def _get_string(self, result):
         if not result:
@@ -29,45 +76,13 @@ class GameSpider(Spider):
 
         return extracted[0]
 
-    BAD_PAGE_NAMES = {'<', '>'}
-
-    def parse(self, response):
-        log.info('Parsing "%s"' % response.url)
-
-        hxs = Selector(response)
-        results = hxs.xpath('//a[contains(@class, "search_result_row")]')
-
-        for result in results:
-            href = result.xpath('@href').extract()[0]
-
-            yield Request(
-                href,
-                callback=self.parse_page,
-                cookies={'birthtime': '157795201', 'lastagecheckage': '1-January-1975'},
-            )
-
-        pages = hxs.xpath('//div[@class="search_pagination_right"]/a')
-        for page in pages:
-            number = self._get_string(page.xpath('text()'))
-            if not number.isdigit():
-                if number not in self.BAD_PAGE_NAMES:
-                    log.info('skipping search page called "%s": not a digit' % number)
-                continue
-
-            if number in self.parsed_page_numbers:
-                log.debug('Skipping page: %s' % number)
-                continue
-
-            self.parsed_page_numbers.add(number)
-
-            log.debug('queueing result page %s' % number)
-            yield Request(
-                self._get_string(page.xpath('@href')),
-                meta={'page_number:': number}
-            )
-
     def parse_page(self, response):
-        hxs = Selector(response)
+        if 'agecheck' in response.url:
+            import pdb; pdb.set_trace()
+            self.logger.warning('Failed to submit age check')
+            return
+
+        hxs = scrapy.Selector(response)
         url = response.url
         if '?' in response.url:
             url = response.url[:response.url.rfind('?') - 1]
@@ -93,13 +108,14 @@ class GameSpider(Spider):
                 found_genre = 'Genre:' in detail.xpath('text()').extract()
                 continue
 
-            if detail._root.tag != 'a':
+            if detail.root.tag != 'a':
                 break
 
             for text in detail.xpath('text()').extract():
                 genres.append(text)
 
-        return SteamGame(
+        self.logger.info('finished parsing %s' % name)
+        return dict(
             id=url[url.rfind('/') + 1:],
             name=name,
             url=url,

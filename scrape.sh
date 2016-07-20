@@ -1,10 +1,10 @@
 #!/bin/bash
 
-OUTPUT=../../games.json
+OUTPUT=games.json
 
-if [ -f $OUTPUT ] 
+if [ -f $OUTPUT ]
 then
   rm $OUTPUT
 fi
 
-scrapy crawl steam_games -o $OUTPUT -t json
+scrapy runspider scraper.py -o $OUTPUT -t json -L INFO
