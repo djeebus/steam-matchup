@@ -1,0 +1,33 @@
+application:
+  main:
+    use: package:steam_matchup#main
+    openid.store.type: mem
+    openid.success_callback: steam_matchup.auth:on_success
+
+
+server:
+  main:
+    use: egg:waitress#main
+    port: 10666
+
+
+logging:
+  main:
+    version: 1
+
+    formatters:
+      default:
+        format: '%(asctime)s %(levelname)-7s - %(message)s'
+
+    handlers:
+      console:
+        class: logging.StreamHandler
+        formatter: default
+        level: DEBUG
+        stream: ext://sys.stdout
+
+    root:
+      handlers:
+        - console
+      level: DEBUG
+      popagate: True

@@ -1,4 +1,4 @@
-import urlparse
+from urllib import parse
 
 from pyramid.httpexceptions import HTTPTemporaryRedirect
 
@@ -15,7 +15,7 @@ def includeme(config):
 
 def on_success(context, request, openid_data):
     identity_url = openid_data['identity_url']
-    url_parts = urlparse.urlparse(identity_url)
+    url_parts = parse.urlparse(identity_url)
 
     response = HTTPTemporaryRedirect('/')
     response.set_cookie(

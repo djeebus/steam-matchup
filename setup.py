@@ -1,6 +1,10 @@
 from setuptools import setup, find_packages
 
-install_reqs = open('reqs/install.in').readlines()
+install_reqs = [
+    l for l in
+    open('reqs/install.in').readlines()
+    if l and l[0] != '-'
+]
 
 
 setup(

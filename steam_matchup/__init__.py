@@ -9,7 +9,7 @@ cache_region = make_region().configure(
 def main(global_config, **settings):
     settings.update(global_config)
     config = Configurator(
-            settings=settings,
+        settings=settings,
     )
 
     config.include('.api', route_prefix='/api')

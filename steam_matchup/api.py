@@ -1,7 +1,7 @@
 import json
-import steam
 
-from steam_matchup import cache_region
+from steam_matchup.steam import ApiClient
+
 
 def includeme(config):
     """
@@ -35,7 +35,7 @@ class SteamGamersHandler(object):
         self.request = request
 
     def get(self):
-        steam_client = steam.ApiClient()
+        steam_client = ApiClient()
 
         gamer_ids = self.request.GET.getall('gamerId')
 

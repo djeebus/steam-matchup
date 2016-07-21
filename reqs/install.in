@@ -1,5 +1,6 @@
 dogpile.cache
 pyramid
-pyramid_openid
 scrapy
+tomb_cli>=0.0.4
 waitress
+-e git+git://github.com/djeebus/pyramid_openid.git@py3#egg=pyramid-openid

@@ -1,7 +1,7 @@
 import json
 import logging
 import time
-import urllib
+import requests
 
 from steam_matchup import cache_region
 
@@ -50,20 +50,19 @@ class ApiClient(object):
         qs['key'] = '3F43D315F79104DE98A177968EE11A51'
         qs['format'] = 'json'
 
-        url = "http://api.steampowered.com/%(interface)s/%(method)s/v%(version)s/?%(query)s" % {
+        url = "http://api.steampowered.com/%(interface)s/%(method)s/v%(version)s/" % {
             "interface": interface_method,
             "method": method_name,
             "version": version,
-            "query": urllib.urlencode(qs)
         }
 
-        # logger.debug("steam request => %s" % url)
-
         start = time.time()
-        f = urllib.urlopen(url)
-        content = f.read()
-        data = json.loads(content)
+        response = requests.get(
+            url, params=qs,
+        )
         end = time.time()
+
+        data = response.json()
         logger.info('steam call to %s/%s took %s seconds' % (interface_method, method_name, end - start))
 
         return data
