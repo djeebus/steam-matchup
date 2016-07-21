@@ -1,5 +1,6 @@
 dogpile.cache
 pyramid
+requests
 scrapy
 tomb_cli>=0.0.4
 waitress

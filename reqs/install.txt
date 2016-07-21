@@ -30,6 +30,7 @@ python3-openid==3.0.10
 PyYAML==3.11              # via tomb-cli
 queuelib==1.4.2           # via scrapy
 repoze.lru==0.6           # via pyramid
+requests==2.10.0
 scrapy==1.1.1
 service-identity==16.0.0  # via scrapy
 six==1.10.0               # via cryptography, montague, parsel, pyopenssl, scrapy, w3lib
